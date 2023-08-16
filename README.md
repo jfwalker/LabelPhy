@@ -1,4 +1,4 @@
 # LabelPhy
 Program To label phylogenetic trees
 
-Test
+Necessary files for the program can be downloaded here: https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/

@@ -1,3 +1,5 @@
+usage: labelphy.py [-h] [-f F] [-v] [-e E] [-k K] [-s] [-o O] [-c]
+
 LabelPhy
 
 options:
@@ -8,6 +10,8 @@ options:
   -k K        API Key for NCBI API
   -s          Save NCBI Email and API Key
   -o O        Output File Name
+  -c          Customize Node Labels
+
 
 python labelphy.py -f Rooted.tre -o Output_tree.tre -e NCBI_EMAIL -k NCBI_KEY -s
 

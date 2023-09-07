@@ -19,3 +19,9 @@ python labelphy.py -f Rooted.tre -o Output_tree.tre -e NCBI_EMAIL -k NCBI_KEY -s
 
 -v 	Verbose is for if you're insane enough to double check every single node and its children
 
+
+The first run of a tree will take awhile because this script will search NCBI for every individual species.
+It takes this data and saves it to a .json
+So, every following run will be much faster
+
+Script is currently extremely barebones. Think of it more as a proof-of-concept at the moment.

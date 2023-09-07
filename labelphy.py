@@ -128,31 +128,33 @@ if __name__ == '__main__':
     parser.add_argument('-o', type=str, help='Output File Name')
     
     args = parser.parse_args()
-
-    if args.e and args.k:
-        SI.email = args.e
-        SI.key = args.k
-        if args.s:
-            with open('api_key.txt', 'w') as f:
-                f.write(f'{args.e}\n{args.k}')
-        print(SI.email, SI.key)
-    else:
-        try:
-            with open('api_key.txt', 'r') as f:
-                SI.email = f.readline().rstrip()
-                SI.key = f.readline().rstrip()
-        except:
-            sys.stdout.write(f'\033[1;31mError:\033[0m No API Key Found\n')
-            sys.stdout.write(f'Use -e and -k to specify email and API key\n')
-            sys.stdout.write(f'Or use -s to save email and API key\n')
-            sys.exit(1)
-            
-    if args.o:
-        dir_name = os.path.dirname(args.o)
-        if dir_name and not os.path.exists(dir_name):
-            os.makedirs(dir_name)
-        
     if args.f:
+
+        if args.e and args.k:
+            SI.email = args.e
+            SI.key = args.k
+            if args.s:
+                with open('api_key.txt', 'w') as f:
+                    f.write(f'{args.e}\n{args.k}')
+            print(SI.email, SI.key)
+        else:
+            try:
+                with open('api_key.txt', 'r') as f:
+                    SI.email = f.readline().rstrip()
+                    SI.key = f.readline().rstrip()
+            except:
+                sys.stdout.write(f'\033[1;31mError:\033[0m No API Key Found\n')
+                sys.stdout.write(f'Use -e and -k to specify email and API key\n')
+                sys.stdout.write(f'Or use -s to save email and API key\n')
+                sys.exit(1)
+
+        if args.o:
+            dir_name = os.path.dirname(args.o)
+            if dir_name and not os.path.exists(dir_name):
+                os.makedirs(dir_name)
+        else:
+            args.o = 'output.tre'
+
         main()
     else:
         parser.print_help()

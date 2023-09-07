@@ -62,10 +62,24 @@ if __name__ == '__main__':
     def filter_overlap_dict(overlap_dict, ranks):
         return {key: val for key, val in overlap_dict.items() if val and key.lower() in ranks}
 
-    def wait_for_keypress():
+    def wait_for_keypress(species, lowest_list):
+        sys.stdout.write(f'\033[1m{species}\033[0m\n')
+        sys.stdout.write(f'\033[32m{lowest_list}\033[m\n')
         input('\033[1mPress any key to continue...\033[0m')
         sys.stdout.write('\033[F')
         sys.stdout.write('\033[K')
+
+    def custom_label(species, lowest_list):
+        sys.stdout.write(f'\033[1m{species}\033[0m\n')
+        sys.stdout.write(f'\033[32m{lowest_list}\033[m\n')
+        label_string = input('\033[1mEnter label or leave empty to keep:\033[0m')
+        sys.stdout.write('\033[F')
+        sys.stdout.write('\033[K')
+        if label_string:
+            return label_string
+        else:
+            return lowest_list
+
 
     def output(species_list, lowest_common):
         sys.stdout.write(f'\033[0;32m{species_list}\033[34m\n{lowest_common}')
@@ -106,10 +120,10 @@ if __name__ == '__main__':
                     if colon_pos == len(line) - 1:
                         break
                     colon_pos += 1
-                if args.v:
-                    sys.stdout.write(f'\033[1m{species[x]}\033[0m\n')
-                    sys.stdout.write(f'\033[32m{lowest_list[x][-1][-1]}\033[m\n')
-                    wait_for_keypress()  
+                if args.v and not args.c:
+                    wait_for_keypress(species[x], lowest_list[x][-1][-1])
+                elif args.c:
+                    lowest_list[x][-1][-1] = custom_label(species[x], lowest_list[x][-1][-1])
                 string_to_replace = ')' + lowest_list[x][-1][-1]
                 if not string_to_replace in line:
                     line = line[:y] + ')' + lowest_list[x][-1][-1] + line[colon_pos:]
@@ -129,7 +143,7 @@ if __name__ == '__main__':
     parser.add_argument('-k', type=str, help='API Key for NCBI API')
     parser.add_argument('-s', action='store_true', help='Save NCBI Email and API Key')
     parser.add_argument('-o', type=str, help='Output File Name')
-    
+    parser.add_argument('-c', action='store_true', help='Customize Node Labels')
     args = parser.parse_args()
     if args.f:
 

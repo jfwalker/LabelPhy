@@ -110,9 +110,11 @@ if __name__ == '__main__':
                     sys.stdout.write(f'\033[1m{species[x]}\033[0m\n')
                     sys.stdout.write(f'\033[32m{lowest_list[x][-1][-1]}\033[m\n')
                     wait_for_keypress()  
-                string_to_replace = ')' + lowest_list[x][-1][-1] + ':'
+                string_to_replace = ')' + lowest_list[x][-1][-1]
                 if not string_to_replace in line:
                     line = line[:y] + ')' + lowest_list[x][-1][-1] + line[colon_pos:]
+                else:
+                    line = line[:y] + ')' + line[colon_pos:]
 
                 
             sys.stdout.write(f'\033[1mFinished...\033[0m\nWriting output as {args.o}\n')

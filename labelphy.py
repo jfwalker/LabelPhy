@@ -1,5 +1,4 @@
 import re
-import sys
 from species_info import SpeciesInfo
 import json
 import sys

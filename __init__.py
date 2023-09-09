@@ -3,7 +3,7 @@ from datetime import datetime
 date_time = datetime.now()
 y = str(date_time.year)
 __major__ = 0
-__minor__ = 2
+__minor__ = 3
 __patch__ = 0
 __script_name__ = 'LabelPhy'
 __version__ = f'{__major__}.{__minor__}.{__patch__}'

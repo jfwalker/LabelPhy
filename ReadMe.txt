@@ -1,6 +1,6 @@
 usage: labelphy.py [-h] [-f F] [-v] [-e E] [-k K] [-s] [-o O] [-c]
 
-LabelPhy
+LabelPhy 0.3.0
 
 options:
   -h, --help  show this help message and exit

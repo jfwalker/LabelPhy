@@ -4,6 +4,8 @@ import json
 import sys
 import argparse
 import os
+import time
+import datetime
 
 
 if __name__ == '__main__':
@@ -17,12 +19,15 @@ if __name__ == '__main__':
         overlap_dict = {}
 
         species_tax_dict = load_species_tax_dict()
+        SI.species_load_count = len(species_tax_dict)
 
         for species in species_list:
             species_tax_dict = update_species_tax_dict(species, species_tax_dict, SI)
+
+        species_tax_dict = mono_species_name(species_tax_dict)
+
+        for species in species_list:
             species_tax.append(species_tax_dict[species])
-        
-        
 
         overlap_dict = update_overlap_dict(species_tax, overlap_dict)
         
@@ -36,13 +41,34 @@ if __name__ == '__main__':
                 return json.load(f)
         except FileNotFoundError:
             return {}
+    
+    start_time = time.time()
+    time_searches = 0
+
+    def estimated_time_remaining():
+        global time_searches
+        time_searches += 1
+        current_iteration = time_searches
+        total_iterations = SI.species_total_count
+
+        if current_iteration == 0 or total_iterations == 0:
+            return "Estimating..."
+
+        elapsed_time = time.time() - start_time
+        time_per_iteration = elapsed_time / current_iteration
+        remaining_iterations = total_iterations - current_iteration
+        estimated_time = remaining_iterations * time_per_iteration
+
+        return str(datetime.timedelta(seconds=int(estimated_time)))
+        
 
     def update_species_tax_dict(species, species_tax_dict, SI):
         if species not in species_tax_dict:
             sys.stdout.write('\033[F')
             sys.stdout.write('\033[K')
             
-            sys.stdout.write(f'\033[1mSearching NCBI for species:\033[0m {species}\n')
+            sys.stdout.write(f'\033[1mSearching NCBI for species:\033[0m ({SI.species_load_count}/{SI.species_total_count}) \033[1mETA:\033[0m({estimated_time_remaining()}): {species}\n')
+            SI.species_load_count += 1
 
             species_tax_dict[species] = SI.get_rank_dict(species)
             with open('species_tax_dict.json', 'w') as f:
@@ -67,6 +93,12 @@ if __name__ == '__main__':
         input('\033[1mPress any key to continue...\033[0m')
         sys.stdout.write('\033[F')
         sys.stdout.write('\033[K')
+
+    def mono_species_name(species_dct):
+        for k,v in species_dct.items():
+            if '_' not in k:
+                species_tax_dict[k] += k
+        return species_dct
 
     def custom_label(species, lowest_list):
         sys.stdout.write(f'\033[1m{species}\033[0m\n')
@@ -102,11 +134,11 @@ if __name__ == '__main__':
                             start = stack.pop()
                             bracket_positions.append((start, i))
                             close_brackets.append(i)
-                            species.append(re.findall('[a-zA-Z_\.]+(?<=[a-zA-Z])(?!-)', line[start:i]))
+                            species.append(re.findall('[a-zA-Z_\-\.]+(?<=[a-zA-Z])(?!-)', line[start:i]))
       
             species_list = [x for y in species for x in y]
             species_list = list(set(species_list))
-
+            SI.species_total_count = len(species_list)
             sys.stdout.write(f'\033[1mNumber of Tips:\033[0m {len(species_list)}\n\n')
             for x in species:
                 lowest_common = species_tax(x)
@@ -129,7 +161,7 @@ if __name__ == '__main__':
                 else:
                     line = line[:y] + ')' + line[colon_pos:]
 
-                
+            sys.stdout.write(f'Errors in: {SI.species_errors}\n\n') 
             sys.stdout.write(f'\033[1mFinished...\033[0m\nWriting output as {args.o}\n')
             with open(args.o, 'w') as f:
                 f.write(line)

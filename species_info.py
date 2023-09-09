@@ -14,6 +14,10 @@ class SpeciesInfo:
         self.species_record_count = 0
         self.species_taxonomy = {}
         self.species_errors = []
+        self.species_load_count = 0
+        self.species_total_count = 0
+        self.species_og_name = ''
+        self.species_prev_name = ''
 
     def count_ranks_in_taxonomy(self):
         rank_counts = {}
@@ -27,8 +31,12 @@ class SpeciesInfo:
         Entrez.email = self.email
         Entrez.api_key = self.key
         try:
-            handle = Entrez.esearch(db="taxonomy", term=self.species_name.replace('_', ' '))
+            search_name_list = self.species_name.split('_')
+            search_name = f'{search_name_list[0]}[subtree] AND {" ".join(search_name_list[1:])}'
+            # print(search_name)
+            handle = Entrez.esearch(db="taxonomy", term=search_name, retmode="xml")
             record = Entrez.read(handle)
+            # print(record['IdList'][0])
             return record
 
         except Exception as e:
@@ -36,23 +44,16 @@ class SpeciesInfo:
             return None
 
     def search_correction(self):
-        species_name_list = self.species_name.split('_')
-        sys.stdout.write(f'Retrying {self.species_name} as {" ".join(species_name_list[:-1])}...\n')
+        # species_name_list = self.species_name.split('_')
+        new_name = self.species_og_name.split("_")
+        self.species_name = f'{new_name[0]}[subtree] AND {" ".join(new_name[1:-1])}'
+        sys.stdout.write(f'Retrying {self.species_og_name} as {self.species_name}\n')
         try:
-            handle = Entrez.esearch(db="taxonomy", term=' '.join(species_name_list[:-1]))
-            record = Entrez.read(handle)
-            # sys.stdout.write(f'\033[;32mSuccess.\033[0m\n\n')
-            return get_species_id()
-        except:
-            sys.stdout.write(f'\033[;31mFailed.\033[0m\n')
-            sys.stdout.write(f'Retrying {self.species_name} as {" ".join(species_name_list[1:-1])}...\n')
-            try:
-                handle = Entrez.esearch(db="taxonomy", term=' '.join(species_name_list[1:-1]))
-                record = Entrez.read(handle)
-                sys.stdout.write(f'\033[;32mSuccess.\033[0m\n')
-                return get_species_id()
-            except:
-                return None
+            self.species_id = self.search_species_name()['IdList'][0]
+            # sys.stdout.write(f'\033[;32mSuccess.\033[0m\n')
+        except Exception as e:
+            sys.stdout.write(f'\033[;31mError: Ignoring Tip\033[0m\n')
+            self.species_errors.append(self.species_og_name)
 
     def get_species_id(self):
         Entrez.email = self.email
@@ -65,26 +66,31 @@ class SpeciesInfo:
             sys.stdout.write(f'Retrying {self.species_name}...\n')
             try:
                 self.species_id = self.search_species_name()['IdList'][0]
-                sys.stdout.write(f'\033[;32mSuccess.\033[0m\n')
-            except:
+                sys.stdout.write(f'\033[;32mSuccess.\033[0m\n\n')
+            except Exception as e:
                 sys.stdout.write(f'\033[;31mFailed.\033[0m\n')
-                self.species_errors.append((self.species_name))
-                search_correction = self.search_correction()
-                return search_correction
+                self.species_og_name = self.species_name
+                try:
+                    search_corr_result = self.search_correction()
+                    # self.species_id = search_corr_result['IdList'][0]
+                    sys.stdout.write(f'\033[;32mSuccess.\033[0m\n\n')
+                except Exception as e:
+                    sys.stdout.write(f'\033[;31mFinal Fail... Couldnt Resolve taxID\033[0m\n')
+                    sys.exit()
 
         try:    
             handle = Entrez.efetch(db="taxonomy", id=self.species_id, retmode="xml")
             record = Entrez.read(handle)
             return record
         except Exception as e:
-            sys.stdout.write(f'\033[1;31mError searching NCBI for species data:\033[0m {self.species_name}: {e}\n')
-            sys.stdout.write(f'Retrying {self.species_name}...\n')
+            sys.stdout.write(f'\033[1;31mError searching NCBI for species data:\033[0m {self.species_og_name}: {e}\n')
+            sys.stdout.write(f'Retrying {self.species_og_name}...\n')
             try:
                 handle = Entrez.efetch(db="taxonomy", id=self.species_id, retmode="xml")
                 record = Entrez.read(handle)
                 sys.stdout.write(f'\033[;32mSuccess.\033[0m\n\n')
                 return record
-            except:
+            except Exception as e:
                 sys.stdout.write(f'\033[;31mFailed.\033[0m\n\n')
                 return None
             
